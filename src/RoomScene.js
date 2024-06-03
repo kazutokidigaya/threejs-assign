@@ -6,16 +6,9 @@ function RoomScene() {
   const mountRef = useRef(null);
 
   useEffect(() => {
-    // Seedable random function
-    let seed = 1; // Fixed seed for consistent randomness
-    function seededRandom() {
-      var x = Math.sin(seed++) * 10000;
-      return x - Math.floor(x);
-    }
-
     // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff); // Set scene background to white
+    scene.background = new THREE.Color(0xf0f0f0); // Neutral background
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -30,54 +23,79 @@ function RoomScene() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
+    controls.enableZoom = true;
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased intensity and set to white
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Soft white light
     scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0xffffff, 1, 100);
-    pointLight.position.set(0, 10, 0); // Positioned above the scene
-    scene.add(pointLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(25, 50, 25);
+    scene.add(directionalLight);
 
     // Floor setup
-    const floorGeometry = new THREE.PlaneGeometry(31.62, 31.62);
-    const floorMaterial = new THREE.MeshStandardMaterial({
-      color: 0x808080,
-      roughness: 0.4,
-    });
+    const floorGeometry = new THREE.PlaneGeometry(50, 50);
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // Adding random objects
-    const geometries = [
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.SphereGeometry(0.5, 32, 16),
-      new THREE.CylinderGeometry(0.5, 0.5, 2, 32),
+    // Objects
+    const objects = [
+      {
+        color: 0x8b4513,
+        size: [6, 0.3, 2.5],
+        position: [-5, 0.15, 2],
+        rotation: 0,
+      }, // Area Rug
+      {
+        color: 0xdeb887,
+        size: [2, 0.5, 1],
+        position: [-5, 0.75, 2],
+        rotation: 0,
+      }, // Coffee Table
+      {
+        color: 0x4682b4,
+        size: [2, 0.7, 1],
+        position: [-8, 0.35, 2],
+        rotation: Math.PI / 2,
+      }, // Sofa
+      {
+        color: 0x4682b4,
+        size: [1, 0.7, 0.5],
+        position: [-5, 0.35, 4],
+        rotation: 0,
+      }, // TV Unit
+      {
+        color: 0x8b4513,
+        size: [3, 0.3, 2],
+        position: [5, 0.15, -4],
+        rotation: 0,
+      }, // Bedroom Rug
+      {
+        color: 0x4682b4,
+        size: [2, 0.7, 1.5],
+        position: [5, 0.35, -4],
+        rotation: 0,
+      }, // Bed
     ];
-    const colors = [0x00ff00, 0xff0000, 0x0000ff];
 
-    for (let i = 0; i < 30; i++) {
-      const geometry =
-        geometries[Math.floor(seededRandom() * geometries.length)];
-      const color = colors[Math.floor(seededRandom() * colors.length)];
-      const material = new THREE.MeshStandardMaterial({ color });
-      const object = new THREE.Mesh(geometry, material);
-      object.position.set(
-        (seededRandom() - 0.5) * 30,
-        geometry.parameters.height ? geometry.parameters.height / 2 : 0.5,
-        (seededRandom() - 0.5) * 30
-      );
-      scene.add(object);
-    }
+    objects.forEach((obj) => {
+      const geometry = new THREE.BoxGeometry(...obj.size);
+      const material = new THREE.MeshStandardMaterial({ color: obj.color });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(...obj.position);
+      mesh.rotation.y = obj.rotation;
+      scene.add(mesh);
+    });
 
     // Camera position
-    camera.position.set(0, 10, 20);
+    camera.position.set(0, 15, 25);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Animation loop
     const animate = function () {
       requestAnimationFrame(animate);
-      controls.update(); // Required if controls.enableDamping or controls.autoRotate are set
+      controls.update();
       renderer.render(scene, camera);
     };
 
